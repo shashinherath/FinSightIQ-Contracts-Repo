@@ -1,0 +1,67 @@
+name: Publish
+
+# Runs only when a stable semantic-version tag is pushed, e.g. `v0.1.0`. Never runs on ordinary pushes.
+# Pre-release suffixes (v0.1.0-rc.1) do not match and are intentionally not published by this workflow.
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NUGET_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag is on main
+        run: |
+          git fetch origin main
+          if ! git merge-base --is-ancestor "${GITHUB_SHA}" origin/main; then
+            echo "::error::Tag ${GITHUB_REF_NAME} is not reachable from main. Release only from merged commits."
+            exit 1
+          fi
+
+      - name: Set up .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Verify tag matches project version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PROJECT_VERSION="$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' src/FinSightIQ.Contracts/FinSightIQ.Contracts.csproj | head -n1)"
+          echo "Tag version: ${TAG_VERSION}; project version: ${PROJECT_VERSION}"
+          if [ "${TAG_VERSION}" != "${PROJECT_VERSION}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match <Version>${PROJECT_VERSION}</Version> in the csproj."
+            exit 1
+          fi
+
+      - name: Restore
+        run: dotnet restore FinSightIQ.Contracts.sln
+
+      - name: Build
+        run: dotnet build FinSightIQ.Contracts.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test FinSightIQ.Contracts.sln --configuration Release --no-build
+
+      - name: Pack
+        run: dotnet pack src/FinSightIQ.Contracts/FinSightIQ.Contracts.csproj --configuration Release --no-build --output ./artifacts
+
+      - name: Publish to GitHub Packages
+        # No --skip-duplicate: pushing a version that already exists fails the job, so released packages stay immutable
+        # and a re-run can never be mistaken for a successful release.
+        run: >
+          dotnet nuget push "./artifacts/*.nupkg"
+          --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+          --api-key "$NUGET_TOKEN"

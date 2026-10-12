@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # nuget.config reads this for the private feed; the library itself has no private dependencies.
+      NUGET_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore FinSightIQ.Contracts.sln
+
+      - name: Build
+        run: dotnet build FinSightIQ.Contracts.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test FinSightIQ.Contracts.sln --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory ./TestResults
+
+      - name: Validate JSON Schemas (draft 2020-12, schema/C# agreement)
+        # Already part of the full test run above; repeated in isolation so a schema failure is easy to spot.
+        run: dotnet test tests/FinSightIQ.Contracts.Tests/FinSightIQ.Contracts.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~SchemaAgreementTests|FullyQualifiedName~Schema_"
+
+      - name: Pack (validation only, not published)
+        run: dotnet pack src/FinSightIQ.Contracts/FinSightIQ.Contracts.csproj --configuration Release --no-build --output ./artifacts

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:finsightiq:schema:sentiment-shifted:v1",
+  "title": "SentimentShifted",
+  "description": "A symbol's daily sentiment score crossed the +/-0.3 threshold. Routing key sentiment.score.shifted. Mirrors FinSightIQ.Contracts.Events.SentimentShifted.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["symbol", "score", "previousScore", "date"],
+  "properties": {
+    "symbol": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 10
+    },
+    "score": {
+      "type": "number",
+      "minimum": -1,
+      "maximum": 1
+    },
+    "previousScore": {
+      "type": "number",
+      "minimum": -1,
+      "maximum": 1
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    }
+  }
+}

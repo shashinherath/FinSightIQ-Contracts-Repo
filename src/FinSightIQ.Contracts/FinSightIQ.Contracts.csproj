@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>12.0</LangVersion>
+    <RootNamespace>FinSightIQ.Contracts</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <!-- NuGet package metadata. Packages are created only by an explicit `dotnet pack`. -->
+  <PropertyGroup>
+    <PackageId>FinSightIQ.Contracts</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>FinSightIQ</Authors>
+    <Company>FinSightIQ</Company>
+    <Description>Cross-service event contracts for FinSightIQ: PriceUpdated, PredictionGenerated and SentimentShifted, with matching JSON Schemas.</Description>
+    <PackageTags>finsightiq;contracts;events;json-schema</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/shashinherath/FinSightIQ-Contracts-Repo</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/shashinherath/FinSightIQ-Contracts-Repo</PackageProjectUrl>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <!-- Ship the JSON Schemas (source of truth) with the package for non-.NET tooling. -->
+    <None Include="..\..\schemas\*.json" Pack="true" PackagePath="schemas\" />
+  </ItemGroup>
+
+</Project>

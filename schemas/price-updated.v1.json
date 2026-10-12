@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:finsightiq:schema:price-updated:v1",
+  "title": "PriceUpdated",
+  "description": "A price bar was ingested by the Market Data Service. Routing key market.price.updated. Mirrors FinSightIQ.Contracts.Events.PriceUpdated.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["symbol", "price", "volume", "timestamp"],
+  "properties": {
+    "symbol": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 10,
+      "description": "Uppercase ticker symbol."
+    },
+    "price": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Price of the bar (its close)."
+    },
+    "volume": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Traded volume of the bar."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "(Z|\\+00:00)$",
+      "description": "Instant the bar was recorded, in UTC."
+    },
+    "open": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Opening price of the bar. Optional."
+    },
+    "high": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Highest price of the bar. Optional."
+    },
+    "low": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Lowest price of the bar. Optional."
+    }
+  }
+}
